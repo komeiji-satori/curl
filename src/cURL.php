@@ -169,6 +169,29 @@ class cURL
     {
         return $this->process();
     }
+
+    /**
+     * Set Proxy
+     * @param string  $options
+     * @return self
+     */
+    public function proxy($config = "")
+    {
+        $this->set("CURLOPT_PROXY", $config);
+        return $this;
+    }
+
+    /**
+     * Set Timeout
+     * @param int  $timeout
+     * @return self
+     */
+    public function timeout($timeout = 5)
+    {
+        $this->set("CURLOPT_TIMEOUT", $timeout);
+        return $this;
+    }
+
     /**
      * Request Cookie
      * @param array $cookie
@@ -184,6 +207,7 @@ class cURL
         $this->set('CURLOPT_COOKIE', $cookie_str);
         return $this;
     }
+
     /**
      * Request Header
      * @param array $header
