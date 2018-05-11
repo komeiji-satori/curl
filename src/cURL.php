@@ -175,9 +175,15 @@ class cURL
      * @param string  $options
      * @return self
      */
-    public function proxy($config = "")
+    public function proxy($proxy = null)
     {
-        $this->set("CURLOPT_PROXY", $config);
+        if (is_array($proxy)) {
+            $rand_proxy = $proxy[array_rand($proxy)];
+            $this->set("CURLOPT_PROXY", $rand_proxy);
+        } else {
+            $this->set("CURLOPT_PROXY", $proxy);
+        }
+
         return $this;
     }
 
