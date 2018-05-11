@@ -295,10 +295,12 @@ class cURL
         $this->info['request_cookie'] = isset($this->raw_config['cookie']) ? $this->raw_config['cookie'] : [];
 
         $this->data = $response;
-        foreach ($headers['set-cookie'] as $cookie) {
-            preg_match('/^\s*([^;]*)/mi', $cookie, $matches);
-            list($key, $value) = explode("=", $matches[0], 2);
-            $cookies[$key] = $value;
+        if (is_array($headers['set-cookie'])) {
+            foreach ($headers['set-cookie'] as $cookie) {
+                preg_match('/^\s*([^;]*)/mi', $cookie, $matches);
+                list($key, $value) = explode("=", $matches[0], 2);
+                $cookies[$key] = $value;
+            }
         }
 
         $this->info['response_cookie'] = $cookies;
