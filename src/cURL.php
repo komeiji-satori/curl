@@ -17,7 +17,7 @@ class cURL
     private $retry = 0;
     private $custom = array();
     private $option = array(
-        'CURLOPT_HEADER' => 1,
+        'CURLOPT_HEADER' => 0,
         'CURLOPT_TIMEOUT' => 30,
         'CURLOPT_ENCODING' => '',
         'CURLOPT_IPRESOLVE' => 1,
@@ -261,7 +261,8 @@ class cURL
     private function process($retry = 0)
     {
         $ch = curl_init();
-
+        $headers = [];
+        $cookies = [];
         $option = array_merge($this->option, $this->custom);
         foreach ($option as $key => $val) {
             if (is_string($key)) {
@@ -274,35 +275,34 @@ class cURL
             curl_setopt($ch, CURLOPT_POST, 1);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $this->convert($this->post));
         }
-        $response = (string) curl_exec($ch);
+        curl_setopt($ch, CURLOPT_HEADERFUNCTION, function ($curl, $header) use (&$headers) {
+            $len = strlen($header);
+            $header = explode(':', $header, 2);
+            if (count($header) >= 2) {
+                if (strtolower($header[0]) == "set-cookie") {
+                    $headers["set-cookie"][] = trim($header[1]);
+                } else {
+                    $headers[strtolower($header[0])] = trim($header[1]);
+                }
+            }
+            return $len;
+        });
+
+        $response = curl_exec($ch);
         $this->info = curl_getinfo($ch);
 
         $this->info['request_header'] = isset($this->raw_config['header']) ? $this->raw_config['header'] : [];
         $this->info['request_cookie'] = isset($this->raw_config['cookie']) ? $this->raw_config['cookie'] : [];
 
-        $response_headers = [];
-        // if (curl_getinfo($ch, CURLINFO_HTTP_CODE) == '200') {
-
-        // }
-        list($header, $body) = explode("\r\n\r\n", $response, 2);
-
-        $this->data = $body;
-        $data = explode("\n", $header);
-
-        array_shift($data);
-
-        foreach ($data as $part) {
-            $middle = explode(":", $part);
-            $response_headers[trim(@$middle[0])] = trim(@$middle[1]);
+        $this->data = $response;
+        foreach ($headers['set-cookie'] as $cookie) {
+            preg_match('/^\s*([^;]*)/mi', $cookie, $matches);
+            list($key, $value) = explode("=", $matches[0], 2);
+            $cookies[$key] = $value;
         }
-        preg_match_all('/^Set-Cookie:\s*([^;]*)/mi', $response, $matches);
-        $cookies = array();
-        foreach ($matches[1] as $item) {
-            parse_str($item, $cookie);
-            $cookies = array_merge($cookies, $cookie);
-        }
+
         $this->info['response_cookie'] = $cookies;
-        $this->info['response_header'] = $response_headers;
+        $this->info['response_header'] = $headers;
 
         $this->error = curl_errno($ch);
         $this->message = $this->error ? curl_error($ch) : '';
