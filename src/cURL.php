@@ -151,12 +151,16 @@ class cURL
     /**
      * Request URL
      * @param string $url
+     * @param array $data
      * @return self
      * @throws Exception
      */
-    public function url($url)
+    public function url($url, $data = [])
     {
         if (filter_var($url, FILTER_VALIDATE_URL)) {
+            if (!empty($data)) {
+                $url .= "?" . http_build_query($data);
+            }
             return $this->set('CURLOPT_URL', $url);
         }
         throw new Exception('Target URL is required.', 500);
