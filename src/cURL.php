@@ -65,6 +65,15 @@ class cURL
     {
         return $this->data;
     }
+    /**
+     * Result JSON
+     *
+     * @return string
+     */
+    public function json()
+    {
+        return \json_decode($this->data,true);
+    }
 
     /**
      * Error status
