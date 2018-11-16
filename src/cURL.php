@@ -165,7 +165,11 @@ class cURL {
 	public function url($url, $data = []) {
 		if (filter_var($url, FILTER_VALIDATE_URL)) {
 			if (!empty($data)) {
-				$url .= "?" . http_build_query($data);
+				if (strstr($url, "?")) {
+					$url .= "&" . http_build_query($data);
+				} else {
+					$url .= "?" . http_build_query($data);
+				}
 			}
 			return $this->set('CURLOPT_URL', $url);
 		}
