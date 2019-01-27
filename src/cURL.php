@@ -121,17 +121,29 @@ class cURL {
 	 * File upload
 	 * @param string $field
 	 * @param string $path
-	 * @param string $type
+	 * @param string $mimetype
 	 * @param string $name
 	 * @return self
 	 */
-	public function file($field, $path, $type, $name) {
-		$name = basename($name);
+	public function file($field, $path, $mimetype = null, $name = null) {
+		if (!function_exists("mime_content_type")) {
+			throw new Exception("Function mime_content_type() Not Exists", -3);
+		}
+		if (!file_exists($path)) {
+			throw new Exception("File Path " . $path . " Not Exists", -2);
+		}
+		if (is_null($name)) {
+			$name = basename($path);
+		}
+		if (is_null($mimetype)) {
+			$mimetype = mime_content_type($path);
+		}
+
 		if (class_exists('CURLFile')) {
 			$this->set('CURLOPT_SAFE_UPLOAD', true);
-			$file = curl_file_create($path, $type, $name);
+			$file = curl_file_create($path, $mimetype, $name);
 		} else {
-			$file = "@{$path};type={$type};filename={$name}";
+			$file = "@{$path};type={$mimetype};filename={$name}";
 		}
 		return $this->post($field, $file);
 	}
