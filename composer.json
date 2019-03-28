@@ -22,7 +22,6 @@
         "name": "Satori",
         "email": "i@ttt.moe"
     }],
-    "minimum-stability": "stable",
     "autoload":
     {
         "files": [
