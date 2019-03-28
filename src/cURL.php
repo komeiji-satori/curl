@@ -297,7 +297,8 @@ class cURL {
 
 		if ($this->post) {
 			curl_setopt($ch, CURLOPT_POST, 1);
-			curl_setopt($ch, CURLOPT_POSTFIELDS, $this->convert($this->post));
+			$post_field = http_build_query($this->convert($this->post));
+			curl_setopt($ch, CURLOPT_POSTFIELDS, $post_field);
 		}
 		curl_setopt($ch, CURLOPT_HEADERFUNCTION, function ($curl, $header) use (&$headers) {
 			$len = strlen($header);
