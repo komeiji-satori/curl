@@ -277,6 +277,16 @@ class cURL {
 	}
 
 	/**
+	 * Set User Agent
+	 * @param string  $ua
+	 * @return self
+	 */
+	public function useragent($ua) {
+		$this->set("CURLOPT_USERAGENT", $ua);
+		return $this;
+	}
+
+	/**
 	 * Request Cookie
 	 * @param array $cookie
 	 * @return self
