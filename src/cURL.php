@@ -24,6 +24,7 @@ class cURL {
 		'CURLOPT_SSL_VERIFYPEER' => false,
 		'CURLOPT_CONNECTTIMEOUT' => 10,
 	);
+	private $is_post_json = false;
 
 	private $info;
 	private $data;
@@ -103,6 +104,9 @@ class cURL {
 	 * @return self
 	 */
 	public function post($data, $value = null) {
+		if ($this->is_post_json) {
+			throw new Exception("JSON Post Body Already Set", -4);
+		}
 		if (is_array($data)) {
 			foreach ($data as $key => $val) {
 				$this->post[$key] = $val;
@@ -116,6 +120,19 @@ class cURL {
 		}
 		return $this;
 	}
+	/**
+	 * Set JSON Post data
+	 * @param array $data
+	 * @return self
+	 */
+	public function postJSON($data) {
+		if (!empty($this->post)) {
+			throw new Exception("POST Body Already Set", -5);
+		}
+		$this->post = json_encode($data);
+		$this->is_post_json = true;
+		return $this;
+	}
 
 	/**
 	 * File upload
@@ -126,6 +143,9 @@ class cURL {
 	 * @return self
 	 */
 	public function file($field, $path, $mimetype = null, $name = null) {
+		if ($this->is_post_json) {
+			throw new Exception("JSON Post Body Already Set", -4);
+		}
 		if (!function_exists("mime_content_type")) {
 			throw new Exception("Function mime_content_type() Not Exists", -3);
 		}
@@ -297,8 +317,13 @@ class cURL {
 
 		if ($this->post) {
 			curl_setopt($ch, CURLOPT_POST, 1);
-			$post_field = http_build_query($this->convert($this->post));
-			curl_setopt($ch, CURLOPT_POSTFIELDS, $post_field);
+			if ($this->is_post_json) {
+				curl_setopt($ch, CURLOPT_POSTFIELDS, $this->post);
+			} else {
+				$post_field = http_build_query($this->convert($this->post));
+				curl_setopt($ch, CURLOPT_POSTFIELDS, $post_field);
+			}
+
 		}
 		curl_setopt($ch, CURLOPT_HEADERFUNCTION, function ($curl, $header) use (&$headers) {
 			$len = strlen($header);
